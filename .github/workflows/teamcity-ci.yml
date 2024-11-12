@@ -1,24 +1,36 @@
-name: CI - Build and Push Docker Image
+name: Build and Push Docker Image
 
 on:
   push:
     branches:
-      - main  # or any branch you prefer
+      - main
 
 jobs:
-  trigger-teamcity:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Trigger TeamCity Build
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.TEAMCITY_SERVER_HOST }}
-          username: ${{ secrets.TEAMCITY_USER }}
-          password: ${{ secrets.TEAMCITY_PASSWORD }}
-          script: |
-            curl -u ${{ secrets.TEAMCITY_USER }}:${{ secrets.TEAMCITY_PASSWORD }} \
-            -X POST \
-            "${{ secrets.TEAMCITY_SERVER_URL }}/app/rest/buildQueue" \
-            -H "Content-Type:application/xml" \
-            -d "<build><buildType id='Project_ID_Build_ID'/></build>"
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in to Amazon ECR
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.ECR_REPOSITORY }}:latest .
+      
+      - name: Tag Docker image
+        run: |
+          docker tag ${{ secrets.ECR_REPOSITORY }}:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
+
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:latest
