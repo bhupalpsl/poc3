@@ -23,7 +23,5 @@ jobs:
             -H "Content-Type:application/xml" \
             -d "<build><buildType id='Project_ID_Build_ID'/></build>"
             - name: Debug Info
-            run: echo "Server URL: ${{ secrets.TEAMCITY_SERVER_URL }}"
-            shell: bash
               
 
