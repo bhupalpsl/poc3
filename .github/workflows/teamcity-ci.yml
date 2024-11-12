@@ -22,4 +22,3 @@ jobs:
             "${{ secrets.TEAMCITY_SERVER_URL }}/app/rest/buildQueue" \
             -H "Content-Type:application/xml" \
             -d "<build><buildType id='Project_ID_Build_ID'/></build>"
-
