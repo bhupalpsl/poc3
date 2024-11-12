@@ -1,0 +1,24 @@
+name: CI - Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main  # or any branch you prefer
+
+jobs:
+  trigger-teamcity:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger TeamCity Build
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.TEAMCITY_SERVER_HOST }}
+          username: ${{ secrets.TEAMCITY_USER }}
+          password: ${{ secrets.TEAMCITY_PASSWORD }}
+          script: |
+            curl -u ${{ secrets.TEAMCITY_USER }}:${{ secrets.TEAMCITY_PASSWORD }} \
+            -X POST \
+            "${{ secrets.TEAMCITY_SERVER_URL }}/app/rest/buildQueue" \
+            -H "Content-Type:application/xml" \
+            -d "<build><buildType id='Project_ID_Build_ID'/></build>"
