@@ -1,0 +1,20 @@
+name: CD - Deploy to ECS
+
+on:
+  workflow_run:
+    workflows: ["CI - Build and Push Docker Image "]
+    types:
+      - completed
+
+jobs:
+  deploy-octopus:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Octopus Deployment
+        uses: octopusdeploy/create-release-and-deploy-action@v1.1.0
+        with:
+          api-key: ${{ secrets.OCTOPUS_API_KEY }}
+          octopus-url: ${{ secrets.OCTOPUS_SERVER_URL }}
+          project: 'ProjectName'
+          deploy-to: 'EnvironmentName'
