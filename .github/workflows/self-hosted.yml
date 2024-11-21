@@ -30,3 +30,4 @@ jobs:
           # Run your AWS CLI or other AWS commands here
           aws s3 ls
           aws ec2 describe-instances
+          
